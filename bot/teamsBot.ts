@@ -5,9 +5,6 @@ import {
   AdaptiveCardInvokeValue,
   AdaptiveCardInvokeResponse,
   Mention,
-  MessageFactory,
-  ChannelInfo,
-  TeamsInfo,
 } from 'botbuilder'
 import rawWelcomeCard from './adaptiveCards/welcome.json'
 import rawLearnCard from './adaptiveCards/learn.json'
@@ -84,7 +81,7 @@ export class TeamsBot extends TeamsActivityHandler {
     this.notifyNextObject = { next: '' }
     this.notifyAllObject = { notify_message: '' }
     this.breakObject = { break_message: '' }
-    this.templateObj = { template: 'Pravimo pauzu od % minuta.' }
+    this.templateObj = { template: "We're taking a % minute pause." }
 
     this.onMessage(async (context, next) => {
 
@@ -239,13 +236,12 @@ export class TeamsBot extends TeamsActivityHandler {
           break
         }
         case 'notifyNext': {
-          let role = await TeamsInfo.getMember(context, firstMention.id)
           if (typeof splitMessageText[1] !== 'undefined') {
-            let vreme = splitMessageText[1]
-            this.notifyNextObject.next = "Tim " + this.teamQueueObj.teamQueue.split(" ")[0] + " krece za " + vreme + " minuta."
+            let msg_time = splitMessageText[1]
+            this.notifyNextObject.next = "Team " + this.teamQueueObj.teamQueue.split(" ")[0] + " starts in " + msg_time + " minutes."
           }
           else {
-            this.notifyNextObject.next = "Tim " + this.teamQueueObj.teamQueue.split(" ")[0] + " je sledeci."
+            this.notifyNextObject.next = "Team " + this.teamQueueObj.teamQueue.split(" ")[0] + " is next."
           }
 
           const card = AdaptiveCards.declare<DataInterface>(
@@ -288,9 +284,9 @@ export class TeamsBot extends TeamsActivityHandler {
         }
         case 'break': {
           if (typeof(splitMessageText[1]) != "undefined") {
-            let time = splitMessageText[1]
+            let msg_time = splitMessageText[1]
             let template = this.templateObj.template
-            this.breakObject.break_message = template.slice(0, template.indexOf("%")) + time + template.slice(template.indexOf("%") + 1)
+            this.breakObject.break_message = template.slice(0, template.indexOf("%")) + msg_time + template.slice(template.indexOf("%") + 1)
           }
           else {
             let template = this.templateObj.template
@@ -323,27 +319,27 @@ export class TeamsBot extends TeamsActivityHandler {
           this.notifyNextObject.next = ''
           this.notifyAllObject.notify_message = ''
           this.breakObject.break_message = ''
-          this.templateObj.template = 'Pravimo pauzu od % minuta.'
+          this.templateObj.template = "We're taking a % minute pause."
 
           break
         }
         case 'help': {
               let poruka =
-                '1. queue [Ime tima] - Ovom komandom se korisnik dodaje u tim [Ime tima] ako postoji ili se kreira novi tim i korisnik je prvi clan tog tima' +
+                "1. queue [TeamName] - Adds user to the team if it exists, or it creates a new team if it doesn't" +
                 '\n' +
-                '2. queueOrder [Ime tima] - Vraca se pozicija tima (Ime tima) u redu cekanja' +
+                "2. queueOrder [TeamName] - Returns the position of the team in team queue" +
                 '\n' +
-                '3. leaveQueue [Ime tima] - Korisnik napusta tim (Ime tima) i tim se brise ako nema vise clanova' +
+                "3. leaveQueue [TeamName] - Removes user from the team" +
                 '\n' +
-                '4. showQueue - Prikazuje se ceo red timova koji cekaju' +
+                "4. showQueue - Shows the entire team queue" +
                 '\n' +
-                '5. notifyNext [Vreme] - Obavestava se sledeci tim da treba da udju za [Vreme] minuta' +
+                "5. showMembers - Shows the entire team queue along with it's members" +
                 '\n' +
-                '6. break [Vreme] - Obavestavaju se timovi o pauzi koja traje [Vreme] minuta' +
+                "6. notifyNext [Time] - The next team in queue is notified about when they are starting" +
                 '\n' +
-                '7. removeNext  - Uklanja se tim sa vrha reda' +
+                "7. break [Time] - Everyone is notified about a break with the existing template message" +
                 '\n' +
-                '8. showMembers - Prikazuje se ceo red timova sa svojim clanovima koji cekaju' +
+                "8. removeNext  - The next team in queue is removed" +
                 '\n' +
                 '9. changeTemplate [novaPoruka] - Trenutna templejtska poruka za break naredbu se menja novom koja je prosledjena'
 
@@ -351,7 +347,7 @@ export class TeamsBot extends TeamsActivityHandler {
               break
         }
         default: {
-            await context.sendActivity("Komanda nije prepoznata.")
+            await context.sendActivity("There is no such command.")
             break
           }
       }
